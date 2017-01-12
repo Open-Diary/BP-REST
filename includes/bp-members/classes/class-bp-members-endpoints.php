@@ -98,7 +98,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
 	 */
 	public function update_item( $request ) {
-		$id = (int) $request[ self::FIELD_USER_ID_API ];
+		$id = (int) $request[ 'id' ];
 
 		$user = get_user_by( "id", $id );
 
@@ -112,24 +112,30 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 			return $prepared_args;
 		}
 
-		xprofile_set_field_data( self::FIELD_NAME_XPROFILE, $id, $prepared_args[ self::FIELD_NAME_API ] );
-		xprofile_set_field_data( self::FIELD_ABOUT_ME_XPROFILE, $id, $prepared_args[ self::FIELD_ABOUT_ME_API ] );
-		xprofile_set_field_data( self::FIELD_GENDER_XPROFILE, $id, $prepared_args[ self::FIELD_GENDER_API ] );
-		xprofile_set_field_data( self::FIELD_DOB_XPROFILE, $id, $prepared_args[ self::FIELD_DOB_API ] );
-		xprofile_set_field_data( self::FIELD_COUNTRY_XPROFILE, $id, $prepared_args[ self::FIELD_COUNTRY_API ] );
-		xprofile_set_field_data( self::FIELD_STATEPROV_XPROFILE, $id, $prepared_args[ self::FIELD_STATEPROV_API ] );
-		xprofile_set_field_data( self::FIELD_DIARY_TITLE_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_TITLE_API ] );
-		xprofile_set_field_data( self::FIELD_DIARY_DESC_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_DESC_API ] );
-		xprofile_set_field_data( self::FIELD_DIARY_PRIVACY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_PRIVACY_API ] );
-		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE ] );
-		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API ] );
-		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API ] );
+		if (array_key_exists(self::FIELD_NAME_API, $prepared_args)) xprofile_set_field_data( self::FIELD_NAME_XPROFILE, $id, $prepared_args[ self::FIELD_NAME_API ] );
+		if (array_key_exists(self::FIELD_ABOUT_ME_API, $prepared_args)) xprofile_set_field_data( self::FIELD_ABOUT_ME_XPROFILE, $id, $prepared_args[ self::FIELD_ABOUT_ME_API ] );
+		if (array_key_exists(self::FIELD_GENDER_API, $prepared_args)) xprofile_set_field_data( self::FIELD_GENDER_XPROFILE, $id, $prepared_args[ self::FIELD_GENDER_API ] );
+		if (array_key_exists(self::FIELD_DOB_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DOB_XPROFILE, $id, $prepared_args[ self::FIELD_DOB_API ] );
+		if (array_key_exists(self::FIELD_COUNTRY_API, $prepared_args)) xprofile_set_field_data( self::FIELD_COUNTRY_XPROFILE, $id, $prepared_args[ self::FIELD_COUNTRY_API ] );
+		if (array_key_exists(self::FIELD_STATEPROV_API, $prepared_args)) xprofile_set_field_data( self::FIELD_STATEPROV_XPROFILE, $id, $prepared_args[ self::FIELD_STATEPROV_API ] );
+		if (array_key_exists(self::FIELD_DIARY_TITLE_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_TITLE_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_TITLE_API ] );
+		if (array_key_exists(self::FIELD_DIARY_DESC_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_DESC_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_DESC_API ] );
+		if (array_key_exists(self::FIELD_DIARY_PRIVACY_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_PRIVACY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_PRIVACY_API ] );
+		if (array_key_exists(self::FIELD_DIARY_ALLOW_COMMENTS_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE ] );
+		if (array_key_exists(self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API ] );
+		if (array_key_exists(self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API, $prepared_args)) xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API ] );
 
 		$request->set_param( 'context', 'edit' );
 
-		$updated_user_profile = $this->_get_user_profile_data( $request[ self::FIELD_USER_ID_API ] );
+		$updated_user_profile = $this->_get_user_profile_datum( [ 'include' => [ (int) $request['id'] ], 'type' => 'alphabetical' ] );
 
-		return new WP_REST_Response( $updated_user_profile, 200 );
+		if ( empty( $updated_user_profile ) ) {
+			// should never happen b/c an invalid id would have been detected by now, but just in case
+			return new WP_REST_Response([], 200 );
+		}
+
+		return new WP_REST_Response( $updated_user_profile[0], 200 );
+
 	}
 
 	private function _prepare_string_arg( $current_array, $key, $request ) {
@@ -156,16 +162,16 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 
 		$string_param_keys = [
 			self::FIELD_DIARY_TITLE_API,
-			FIELD_DIARY_DESC_API,
-			FIELD_NAME_API,
-			FIELD_ABOUT_ME_API,
-			FIELD_GENDER_API,
-			FIELD_COUNTRY_API,
-			FIELD_STATEPROV_API,
-			FIELD_DIARY_PRIVACY_API,
-			FIELD_DIARY_ALLOW_COMMENTS_API,
-			FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API,
-			FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API
+			self::FIELD_DIARY_DESC_API,
+			self::FIELD_NAME_API,
+			self::FIELD_ABOUT_ME_API,
+			self::FIELD_GENDER_API,
+			self::FIELD_COUNTRY_API,
+			self::FIELD_STATEPROV_API,
+			self::FIELD_DIARY_PRIVACY_API,
+			self::FIELD_DIARY_ALLOW_COMMENTS_API,
+			self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API,
+			self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API
 		];
 
 		foreach ( $string_param_keys as $key ) {
