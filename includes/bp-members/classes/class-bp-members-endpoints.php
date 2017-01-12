@@ -2,13 +2,19 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Activity endpoints.
+ * Member (User profile) endpoints.
  *
  * @since 0.1.0
  */
 class BP_REST_Members_Controller extends WP_REST_Controller {
 
-	const FIELD_NAME_XPROFILE= 'Name';
+	const FIELD_USER_ID_API = 'user_id';
+	const FIELD_USER_NICENAME_API = 'user_nicename';
+	const FIELD_USER_AVATAR_API = 'user_avatar';
+	const FIELD_USER_PERMALINK_API = 'user_permalink';
+	const FIELD_USER_TOTAL_FRIEND_COUNT_API = 'total_friend_count';
+
+	const FIELD_NAME_XPROFILE = 'Name';
 	const FIELD_NAME_API = 'user_name';
 	const FIELD_ABOUT_ME_XPROFILE = 'About me';
 	const FIELD_ABOUT_ME_API = 'user_about_me';
@@ -92,7 +98,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
 	 */
 	public function update_item( $request ) {
-		$id = (int) $request['user_id'];
+		$id = (int) $request[ self::FIELD_USER_ID_API ];
 
 		$user = get_user_by( "id", $id );
 
@@ -106,22 +112,22 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 			return $prepared_args;
 		}
 
-		xprofile_set_field_data( 'Name', $id, $prepared_args['user_name'] );
-		xprofile_set_field_data( 'About me', $id, $prepared_args['user_about_me'] );
-		xprofile_set_field_data( 'Gender', $id, $prepared_args['user_gender'] );
-		xprofile_set_field_data( 'Date of birth', $id, $prepared_args['user_date_of_birth'] );
-		xprofile_set_field_data( 'Country', $id, $prepared_args['user_country'] );
-		xprofile_set_field_data( 'State/Province', $id, $prepared_args['user_state_province'] );
-		xprofile_set_field_data( 'Diary Title', $id, $prepared_args['diary_title'] );
-		xprofile_set_field_data( 'Diary Description', $id, $prepared_args['diary_description'] );
-		xprofile_set_field_data( 'Privacy', $id, $prepared_args['diary_privacy'] );
-		xprofile_set_field_data( 'Allow comments', $id, $prepared_args['diary_allow_comments'] );
-		xprofile_set_field_data( 'Allow private diaries to comment', $id, $prepared_args['diary_allow_private_diaries_to_comment'] );
-		xprofile_set_field_data( 'Allow private comments on diary', $id, $prepared_args['diary_allow_private_comments_on_diary'] );
+		xprofile_set_field_data( self::FIELD_NAME_XPROFILE, $id, $prepared_args[ self::FIELD_NAME_API ] );
+		xprofile_set_field_data( self::FIELD_ABOUT_ME_XPROFILE, $id, $prepared_args[ self::FIELD_ABOUT_ME_API ] );
+		xprofile_set_field_data( self::FIELD_GENDER_XPROFILE, $id, $prepared_args[ self::FIELD_GENDER_API ] );
+		xprofile_set_field_data( self::FIELD_DOB_XPROFILE, $id, $prepared_args[ self::FIELD_DOB_API ] );
+		xprofile_set_field_data( self::FIELD_COUNTRY_XPROFILE, $id, $prepared_args[ self::FIELD_COUNTRY_API ] );
+		xprofile_set_field_data( self::FIELD_STATEPROV_XPROFILE, $id, $prepared_args[ self::FIELD_STATEPROV_API ] );
+		xprofile_set_field_data( self::FIELD_DIARY_TITLE_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_TITLE_API ] );
+		xprofile_set_field_data( self::FIELD_DIARY_DESC_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_DESC_API ] );
+		xprofile_set_field_data( self::FIELD_DIARY_PRIVACY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_PRIVACY_API ] );
+		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE ] );
+		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API ] );
+		xprofile_set_field_data( self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_XPROFILE, $id, $prepared_args[ self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API ] );
 
 		$request->set_param( 'context', 'edit' );
 
-		$updated_user_profile = $this->_get_user_profile_data( $request['user_id'] );
+		$updated_user_profile = $this->_get_user_profile_data( $request[ self::FIELD_USER_ID_API ] );
 
 		return new WP_REST_Response( $updated_user_profile, 200 );
 	}
@@ -149,25 +155,25 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		$prepared_user_profile = array();
 
 		$string_param_keys = [
-			'diary_title',
-			'diary_description',
-			'user_name',
-			'user_about_me',
-			'user_gender',
-			'user_country',
-			'user_state_province',
-			'diary_privacy',
-			'diary_allow_comments',
-			'diary_allow_private_diaries_to_comment',
-			'diary_allow_private_comments_on_diary'
+			self::FIELD_DIARY_TITLE_API,
+			FIELD_DIARY_DESC_API,
+			FIELD_NAME_API,
+			FIELD_ABOUT_ME_API,
+			FIELD_GENDER_API,
+			FIELD_COUNTRY_API,
+			FIELD_STATEPROV_API,
+			FIELD_DIARY_PRIVACY_API,
+			FIELD_DIARY_ALLOW_COMMENTS_API,
+			FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API,
+			FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API
 		];
 
 		foreach ( $string_param_keys as $key ) {
 			$prepared_user_profile = $this->_prepare_string_arg( $prepared_user_profile, $key, $request );
 		}
 
-		if ( isset( $request['user_date_of_birth'] ) && is_string( $request['user_date_of_birth'] ) ) {
-			$prepared_user_profile['user_date_of_birth'] = date( "Y-m-d H:i:s", strtotime( sanitize_text_field( $request['user_date_of_birth'] ) ) );
+		if ( isset( $request[ self::FIELD_DOB_API ] ) && is_string( $request[ self::FIELD_DOB_API ] ) ) {
+			$prepared_user_profile[ self::FIELD_DOB_API ] = date( "Y-m-d H:i:s", strtotime( sanitize_text_field( $request[ self::FIELD_DOB_API ] ) ) );
 		}
 
 		if ( isset( $request['user_avatar'] ) && is_string( $request['user_avatar'] ) ) {
@@ -197,11 +203,11 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	public function get_item_schema() {
 		$schema = array(
 			'$schema' => 'http://json-schema.org/draft-04/schema#',
-			'title'   => 'activity',
+			'title'   => 'member',
 			'type'    => 'object',
 
 			'properties' => array(
-				'user_id' => array(
+				self::FIELD_USER_ID_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'A unique integer ID for the user.', 'buddypress' ),
 					'readonly'    => true,
@@ -209,7 +215,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					'readonly'    => 'true'
 				),
 
-				'user_name' => array(
+				self::FIELD_NAME_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The name of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -218,7 +224,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_about_me' => array(
+				self::FIELD_ABOUT_ME_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The about me of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -227,7 +233,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_country' => array(
+				self::FIELD_COUNTRY_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The country of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -236,7 +242,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_state_province' => array(
+				self::FIELD_STATEPROV_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The state or province of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -245,7 +251,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_date_of_birth' => array(
+				self::FIELD_DOB_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The birth date of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -255,7 +261,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_gender' => array(
+				self::FIELD_GENDER_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The gender of the user', 'buddypress' ),
 					'enum'        => array( 'Male', 'Female' ),
@@ -265,14 +271,14 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_nicename' => array(
+				self::FIELD_USER_NICENAME_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'The sanitized name of the user', 'buddypress' ),
 					'type'        => 'string',
 					'readonly'    => true
 				),
 
-				'user_avatar' => array(
+				self::FIELD_USER_AVATAR_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'Avatar of the user', 'buddypress' ),
 					'type'        => 'string',
@@ -282,7 +288,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'user_permalink' => array(
+				self::FIELD_USER_PERMALINK_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'User profile page link', 'buddypress' ),
 					'type'        => 'string',
@@ -290,7 +296,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 
-				'diary_title' => array(
+				self::FIELD_DIARY_TITLE_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "Name of the user's diary", 'buddypress' ),
 					'type'        => 'string',
@@ -299,7 +305,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'diary_description' => array(
+				self::FIELD_DIARY_DESC_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "Description of the user's diary", 'buddypress' ),
 					'type'        => 'string',
@@ -308,7 +314,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'diary_privacy' => array(
+				self::FIELD_DIARY_PRIVACY_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "User's diary privacy settings", 'buddypress' ),
 					'enum'        => array( 'Friends', 'Public', 'Private' ),
@@ -318,7 +324,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'diary_allow_comments' => array(
+				self::FIELD_DIARY_ALLOW_COMMENTS_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "User's diary privacy settings", 'buddypress' ),
 					'enum'        => array( 'Friends', 'Public', 'No' ),
@@ -328,7 +334,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'diary_allow_private_diaries_to_comment' => array(
+				self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "User's diary allowance for private diaries to comment", 'buddypress' ),
 					'enum'        => array( 'Yes', 'No' ),
@@ -338,7 +344,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'diary_allow_private_comments_on_diary' => array(
+				self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( "User's diary allowance for private comments to be left", 'buddypress' ),
 					'enum'        => array( 'Yes', 'No', 'Allow only private comments' ),
@@ -348,7 +354,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 					),
 				),
 
-				'total_friend_count' => array(
+				self::FIELD_USER_TOTAL_FRIEND_COUNT_API => array(
 					'context'     => array( 'view', 'edit' ),
 					'description' => __( 'Number of friends the user has', 'buddypress' ),
 					'type'        => 'int',
@@ -402,7 +408,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		);
 
 		$params['type'] = array(
-			'description'       => __( 'Limit result set to items with a specific activity type.', 'buddypress' ),
+			'description'       => __( 'Limit result set to items with a specific member type.', 'buddypress' ),
 			'type'              => 'string',
 			'enum'              => [ 'active', 'newest', 'popular', 'online', 'alphabetical', 'random' ],
 			'default'           => 'alphabetical',
@@ -495,7 +501,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Retrieve activity.
+	 * Retrieve user profile.
 	 *
 	 * @since 0.1.0
 	 *
@@ -516,59 +522,61 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		$ret = [];
 		if ( bp_has_members( $args ) ) :
 			while ( bp_members() ) : bp_the_member();
-				$member                                           = [];
-				$member['user_id']                                = bp_get_member_user_id();
-				$member['user_avatar']                            = bp_get_member_avatar();
-				$member['user_permalink']                         = bp_get_member_permalink();
-				$member['user_name']                              = bp_get_profile_field_data( [
-					'field'   => 'Name',
+				$member                                                = [];
+				$member[self::FIELD_USER_ID_API]                                     = bp_get_member_user_id();
+				$member[self::FIELD_USER_AVATAR_API]                                 = bp_get_member_avatar();
+				$member[self::FIELD_USER_PERMALINK_API]                              = bp_get_member_permalink();
+				$member[ self::FIELD_NAME_API ]                              = bp_get_profile_field_data( [
+					'field'   => self::FIELD_NAME_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['user_nicename']                          = bp_get_member_user_nicename();
-				$member['user_about_me']                          = bp_get_profile_field_data( [
-					'field'   => 'About me',
+				$member['user_nicename']                               = bp_get_member_user_nicename();
+				$member[ self::FIELD_ABOUT_ME_API ]                          = bp_get_profile_field_data( [
+					'field'   => self::FIELD_ABOUT_ME_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['user_gender']                            = bp_get_profile_field_data( [
-					'field'   => 'Gender',
+				$member[ self::FIELD_GENDER_API ]                            = bp_get_profile_field_data( [
+					'field'   => self::FIELD_GENDER_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['user_date_of_birth']                     = $this->prepare_date_response( bp_get_profile_field_data( [
-					'field'   => 'Date of birth',
+				$member[ self::FIELD_DOB_API ]                               = $this->prepare_date_response( bp_get_profile_field_data( [
+					'field'   => self::FIELD_DOB_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] ) );
-				$member['user_country']                           = bp_get_profile_field_data( [
-					'field'   => 'Country',
+				$member[ self::FIELD_COUNTRY_API ]                           = bp_get_profile_field_data( [
+					'field'   => self::FIELD_COUNTRY_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['user_state_province']                    = bp_get_profile_field_data( [
-					'field'   => 'State/Province',
+				$member[ self::FIELD_STATEPROV_API ]                         = bp_get_profile_field_data( [
+					'field'   => self::FIELD_STATEPROV_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_title']                            = bp_get_profile_field_data( [
-					'field'   => 'Diary Title',
+				$member[ self::FIELD_DIARY_TITLE_API ]                       = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_TITLE_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_description']                      = bp_get_profile_field_data( [
-					'field'   => 'Diary Description',
+				$member[ self::FIELD_DIARY_DESC_API ]                        = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_DESC_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_privacy']                          = bp_get_profile_field_data( [
-					'field'   => 'Privacy',
+				$member[ self::FIELD_DIARY_PRIVACY_API ]                     = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_PRIVACY_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_allow_comments']                   = bp_get_profile_field_data( [
-					'field'   => 'Allow comments',
+				$member[ self::FIELD_DIARY_ALLOW_COMMENTS_API ]              = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_ALLOW_COMMENTS_XPROFILE,
 					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_allow_private_diaries_to_comment'] = bp_get_profile_field_data( [ 'field'   => 'Allow private diaries to comment',
-				                                                                                 'user_id' => bp_get_member_user_id()
+				$member[ self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API ]    = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_XPROFILE,
+					'user_id' => bp_get_member_user_id()
 				] );
-				$member['diary_allow_private_comments_on_diary']  = bp_get_profile_field_data( [ 'field'   => 'Allow private comments on diary',
-				                                                                                 'user_id' => bp_get_member_user_id()
+				$member[ self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API ] = bp_get_profile_field_data( [
+					'field'   => self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_XPROFILE,
+					'user_id' => bp_get_member_user_id()
 				] );
-				$member['total_friend_count']                     = bp_get_member_total_friend_count();
-				$ret[]                                            = $member;
+				$member[ self::FIELD_USER_TOTAL_FRIEND_COUNT_API ]           = bp_get_member_total_friend_count();
+				$ret[]                                                 = $member;
 			endwhile;
 		endif;
 
@@ -576,7 +584,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to get information about a specific activity.
+	 * Check if a given request has access to get information about a specific member.
 	 *
 	 * @since 0.1.0
 	 *
@@ -589,7 +597,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to get information about a specific activity.
+	 * Check if a given request has access to get information about a specific member.
 	 *
 	 * @since 0.1.0
 	 *
@@ -602,7 +610,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to activity items.
+	 * Check if a given request has access to member items.
 	 *
 	 * @since 0.1.0
 	 *
