@@ -201,47 +201,14 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		return $params;
 	}
 
-	public function prepare_item_for_response( $activity, $request, $is_raw = false ) {
-		$data = array(
-			'author'                => $activity->user_id,
-			'component'             => $activity->component,
-			'content'               => $activity->content,
-			'date'                  => $this->prepare_date_response( $activity->date_recorded ),
-			'id'                    => $activity->id,
-			'link'                  => $activity->primary_link,
-			'parent'                => $activity->type === 'activity_comment' ? $activity->item_id : 0,
-			'prime_association'     => $activity->item_id,
-			'secondary_association' => $activity->secondary_item_id,
-			'status'                => $activity->is_spam ? 'spam' : 'published',
-			'title'                 => $activity->action,
-			'type'                  => $activity->type,
-		);
-
-		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data    = $this->add_additional_fields_to_object( $data, $request );
-		$data    = $this->filter_response_by_context( $data, $context );
-
-		$response = rest_ensure_response( $data );
-		$response->add_links( $this->prepare_links( $activity ) );
-
-		/**
-		 * Filter an activity value returned from the API.
-		 *
-		 * @param array           $response
-		 * @param WP_REST_Request $request Request used to generate the response.
-		 */
-		return apply_filters( 'rest_prepare_buddypress_activity_value', $response, $request );
-	}
-
-
 	/**
-	 * Retrieve activities.
+	 * Retrieve members.
 	 *
 	 * @since 0.1.0
 	 *
 	 * @param WP_REST_Request $request
 	 *
-	 * @return WP_REST_Request List of activity object data.
+	 * @return WP_REST_Response List of members.
 	 */
 	public function get_items( $request ) {
 		$args = $this->_get_args($request);
@@ -344,59 +311,5 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	public function get_items_permissions_check( $request ) {
 		// TODO: handle private activities etc
 		return true;
-	}
-
-	/**
-	 * Prepare links for the request.
-	 *
-	 * @since 0.1.0
-	 *
-	 * @param array $activity Activity.
-	 *
-	 * @return array Links for the given plugin.
-	 */
-	protected function prepare_links( $activity ) {
-		$base = sprintf( '/%s/%s/', $this->namespace, $this->rest_base );
-
-		// Entity meta.
-		$links = array(
-			'self'       => array(
-				'href' => rest_url( $base . $activity->id ),
-			),
-			'collection' => array(
-				'href' => rest_url( $base ),
-			),
-			'author'     => array(
-				'href' => rest_url( '/wp/v2/users/' . $activity->user_id ),
-			)
-		);
-
-		if ( $activity->type === 'activity_comment' ) {
-			$links['up'] = array(
-				'href' => rest_url( $base . $activity->item_id ),
-			);
-		}
-
-		return $links;
-	}
-
-	/**
-	 * Convert the input date to RFC3339 format.
-	 *
-	 * @param string $date_gmt
-	 * @param string|null $date Optional. Date object.
-	 *
-	 * @return string|null ISO8601/RFC3339 formatted datetime.
-	 */
-	protected function prepare_date_response( $date_gmt, $date = null ) {
-		if ( isset( $date ) ) {
-			return mysql_to_rfc3339( $date );
-		}
-
-		if ( $date_gmt === '0000-00-00 00:00:00' ) {
-			return null;
-		}
-
-		return mysql_to_rfc3339( $date_gmt );
 	}
 }
