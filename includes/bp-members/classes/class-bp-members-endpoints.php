@@ -98,9 +98,9 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
 	 */
 	public function update_item( $request ) {
-		$id = (int) $request['id'];
+		$id = intval($request['id']);
 
-		$user = get_user_by( "id", $id );
+		$user = get_user_by( 'id', $id );
 
 		if ( empty( $user ) ) {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.' ), [ 'status' => 404 ] );
@@ -152,7 +152,7 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		$request->set_param( 'context', 'edit' );
 
 		$updated_user_profile = $this->_get_user_profile_datum( [
-			'include' => [ (int) $request['id'] ],
+			'include' => [  intval($request['id']) ],
 			'type'    => 'alphabetical'
 		] );
 
@@ -202,6 +202,23 @@ class BP_REST_Members_Controller extends WP_REST_Controller {
 		];
 
 		foreach ( $string_param_keys as $key ) {
+			if ($key == self::FIELD_COUNTRY_API && ! in_array($request[self::FIELD_COUNTRY_API], array_values(\OD\Helpers::get_countries()))) {
+					return new WP_Error( 'xprofile_invalid_country', 'Invalid country.  Valid values are ' . implode(",", array_values(\OD\Helpers::get_countries())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_GENDER_API && ! in_array($request[self::FIELD_COUNTRY_API], array_values(\OD\Helpers::get_genders()))) {
+				return new WP_Error( 'xprofile_invalid_gender', 'Invalid gender. Valid values are ' . implode(",", array_values(\OD\Helpers::get_genders())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_STATEPROV_API && ! in_array($request[self::FIELD_STATEPROV_API], array_values(\OD\Helpers::get_states_and_provinces()))) {
+				return new WP_Error( 'xprofile_invalid_state', 'Invalid state/province. Valid values are '. implode(",", array_values(\OD\Helpers::get_states_and_provinces())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_DIARY_PRIVACY_API && ! in_array($request[self::FIELD_DIARY_PRIVACY_API], array_values(\OD\Helpers::get_diary_options_privacy()))) {
+				return new WP_Error( 'xprofile_invalid_diary_privacy', 'Invalid diary privacy setting. Valid values are '. implode(",", array_values(\OD\Helpers::get_diary_options_privacy())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_DIARY_ALLOW_COMMENTS_API && ! in_array($request[self::FIELD_DIARY_ALLOW_COMMENTS_API], array_values(\OD\Helpers::get_diary_options_allow_comments()))) {
+				return new WP_Error( 'xprofile_invalid_diary_allow_comments', 'Invalid allow comment setting. Valid values are ' . implode(",", array_values(\OD\Helpers::get_diary_options_allow_comments())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API && ! in_array($request[self::FIELD_DIARY_ALLOW_PRIV_DIARY_COMMENT_API], array_values(\OD\Helpers::get_diary_options_allow_priv_diaries_to_comment()))) {
+				return new WP_Error( 'xprofile_invalid_diary_allow_priv_diary_comment', 'Invalid allow private diaries to comment setting. Valid values are ' . implode(",", array_values(\OD\Helpers::get_diary_options_allow_priv_diaries_to_comment())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API && ! in_array($request[self::FIELD_DIARY_ALLOW_PRIV_COMMENT_ON_DIARY_API], array_values(\OD\Helpers::get_diary_options_allow_priv_comments_on_diary()))) {
+				return new WP_Error( 'xprofile_invalid_diary_allow_priv_comment_on_diary', 'Invalid allow private comments setting. Valid values are ' . implode(",", array_values(\OD\Helpers::get_diary_options_allow_priv_comments_on_diary())), array( 'status' => 401 ) );
+			} elseif ($key == self::FIELD_DOB_API && !\OD\Helpers::is_mysql_date_format($request[self::FIELD_DOB_API])) {
+				return new WP_Error( 'xprofile_invalid_date_format', 'Invalid DOB format. Must be YYYY-MM-DD', array( 'status' => 401 ) );
+			}
 			$prepared_user_profile = $this->_prepare_string_arg( $prepared_user_profile, $key, $request );
 		}
 
